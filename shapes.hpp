@@ -106,3 +106,35 @@ struct Plane : public Shape {
         return normal;
     }
 };
+
+struct Triangle : public Shape{
+    Plane plane;
+    vec3 edgeVetorAB, edgeVetorAC;
+
+    Triangle(const vec3& color, const vec3& a, const vec3& b, const vec3& c) : Shape(color), plane(color, a, cross(b - a, c - a)) {
+        vec3 u = b - a;
+        vec3 v = c - a;
+        vec3 projuv = v * (dot(u, v)/dot(v, v));
+        vec3 projvu = u * (dot(v, u)/dot(u, u));
+        edgeVetorAB = u - projuv;
+        edgeVetorAB = edgeVetorAB / edgeVetorAB.length();
+        edgeVetorAC = v - projvu;
+        edgeVetorAC = edgeVetorAC / edgeVetorAC.length();
+    }
+
+    bool intersect(const Ray& ray, float& t) {
+        if(!plane.intersect(ray, t)) {
+            return false;
+        }
+        vec3 p = ray.point_at_parameter(t);
+        vec3 ap = p - plane.pp;
+        double beta = dot(ap, edgeVetorAB);
+        double gama = dot(ap, edgeVetorAC);
+        double alpha = 1 - beta - gama;
+        if (alpha < -EPS || beta < -EPS || gama < -EPS) {
+            return false;
+        }
+        return true;
+    }
+
+};
