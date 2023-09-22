@@ -83,3 +83,26 @@ struct Sphere : public Shape {
     }
 
 };
+
+struct Plane : public Shape {
+    vec3 pp;
+    vec3 normal;
+
+    Plane(const vec3& color, const vec3& pp, const vec3& normal) : Shape(color), pp(pp), normal(unit_vector(normal)) {}
+
+    bool intersect (const Ray& ray, float& t) {
+        float aux = dot(normal, ray.direction);
+
+        if(std::abs(aux) < EPS) {
+            return false;
+        }
+        else{
+            t = dot(normal, pp - ray.origin) / aux;
+            return t > EPS;
+        }
+    }
+
+    vec3 getNormal (const vec3& point) {
+        return normal;
+    }
+};
