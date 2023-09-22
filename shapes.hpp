@@ -74,4 +74,12 @@ struct Sphere : public Shape {
         return true;
     }
 
-}
+    void applyMatrix (const Matrix& matrix) {
+        center = matrix * center;
+    }
+
+    vec3 getNormal (const vec3& point) {
+        return unit_vector(point - center);
+    }
+
+};
