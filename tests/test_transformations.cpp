@@ -1,4 +1,6 @@
 #include "../transformations.hpp"
+#include "../scene.hpp"
+#include <iostream>
 #define M_PI       3.14159265358979323846
 
 // oi bea bea 😎
@@ -26,6 +28,23 @@ int main() {
 
     // Imprime o vetor transladado
     std::cout << translated_vector << std::endl;
+  
 
+    // Instanciando Luz e printando
+    std::vector<Light> v;
+    Light light(translated_vector, rotated_vector);
+    Light light1(rotated_vector, translated_vector);
+    v.push_back(light);
+    v.push_back(light1);
+    Scene scene(rotated_vector, v);
+    std::cout << "Luzes e cena" << std::endl;
+    std::cout << light.color << std::endl;
+    std::cout << light.position << std::endl;
+    std::cout << "-------------------" << std::endl;
+    std::cout << scene.ambient_Color << std::endl;
+    std::cout << scene.light_Sources.at(0).color << std::endl;
+    std::cout << scene.light_Sources.at(1).color << std::endl;
+    
+    
     return 0;
 }
