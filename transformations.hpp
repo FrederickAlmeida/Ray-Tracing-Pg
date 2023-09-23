@@ -91,7 +91,10 @@ public:
 
 };
 
-
+vec3 afTransformation(const Matrix& m, const vec3& v){
+    vec3 nv = m*vec3(v[0], v[1], v[2]);
+    return {nv[0], nv[1], nv[2]};
+}
 
 
 

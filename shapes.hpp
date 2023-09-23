@@ -60,7 +60,7 @@ struct Sphere : public Shape {
         float d2 = dot(v, v) - tca * tca;
         float r2 = radius * radius;
 
-        if (signum(d2 - r2) > 0) {
+        if (d2 - r2 > EPS) { // edit: comparacao com o EPS ao inves de 0
             return false;
         }
 
@@ -112,14 +112,18 @@ struct Plane : public Shape {
     vec3 getNormal(const vec3& point) {
         return normal;
     }
+
+    void applyMatrix(const Matrix& m){
+        pp = m * pp;
+        normal = unit_vector(m * normal);
+    }
 };
 
 // Definição de um triângulo
-struct Triangle : public Shape {
-    Plane plane;
+struct Triangle : public Plane {
     vec3 edgeVectorAB, edgeVectorAC;
 
-    Triangle(const vec3& color, const vec3& a, const vec3& b, const vec3& c) : Shape(color), plane(color, a, cross(b - a, c - a)) {
+    Triangle(const vec3& color, const vec3& a, const vec3& b, const vec3& c) : Plane(color, a, unit_vector(cross(b-a, c-a))) {
         vec3 u = b - a;
         vec3 v = c - a;
         vec3 projuv = v * (dot(u, v) / dot(v, v));
@@ -132,11 +136,11 @@ struct Triangle : public Shape {
 
     // Função para testar interseção entre um raio e o triângulo
     bool intersect(const Ray& ray, float& t) {
-        if (!plane.intersect(ray, t)) {
+        if (!Plane::intersect(ray, t)) {
             return false;
         }
         vec3 p = ray.point_at_parameter(t);
-        vec3 ap = p - plane.pp;
+        vec3 ap = p - pp; // Aqui foi colocado diretamente o plano, já que pp é uma heranca de Plane
         double beta = dot(ap, edgeVectorAB);
         double gamma = dot(ap, edgeVectorAC);
         double alpha = 1 - beta - gamma;
@@ -144,5 +148,11 @@ struct Triangle : public Shape {
             return false;
         }
         return true;
+    }
+
+    void applyMatrix(const Matrix& m){
+        Plane::applyMatrix(m);
+        edgeVectorAB = m * edgeVectorAB;
+        edgeVectorAC = m * edgeVectorAC;
     }
 };
