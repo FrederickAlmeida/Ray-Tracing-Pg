@@ -1,5 +1,8 @@
 #include "transformations.hpp"
 
+#ifndef SHAPES_HPP
+#define SHAPES_HPP
+
 const float EPS = 1e-6f;
 
 // Função para determinar o sinal de um número real
@@ -156,3 +159,5 @@ struct Triangle : public Plane {
         edgeVectorAC = m * edgeVectorAC;
     }
 };
+
+#endif
