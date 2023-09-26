@@ -127,31 +127,49 @@ struct Triangle : public Plane {
     vec3 edgeVectorAB, edgeVectorAC;
 
     Triangle(const vec3& color, const vec3& a, const vec3& b, const vec3& c) : Plane(color, a, unit_vector(cross(b-a, c-a))) {
+        //std::ofstream debugLog("debug.log", std::ios_base::app); 
+
+
+
         vec3 u = b - a;
         vec3 v = c - a;
         vec3 projuv = v * (dot(u, v) / dot(v, v));
-        vec3 projvu = u * (dot(v, u) / dot(u, u));
+        vec3 projvu = u * (dot(u, v) / dot(u, u));
         edgeVectorAB = u - projuv;
-        edgeVectorAB = edgeVectorAB / edgeVectorAB.length();
+        edgeVectorAB = edgeVectorAB / dot(edgeVectorAB, edgeVectorAB);
         edgeVectorAC = v - projvu;
-        edgeVectorAC = edgeVectorAC / edgeVectorAC.length();
+        edgeVectorAC = edgeVectorAC / dot(edgeVectorAC, edgeVectorAC);
+
+        //debugLog << "Triangle vertices: " << a << ", " << b << ", " << c << std::endl;
+        //debugLog << "Plane point (pp): " << pp << std::endl;
+        //debugLog << "Plane normal: " << normal << std::endl;
     }
 
-    // Função para testar interseção entre um raio e o triângulo
     bool intersect(const Ray& ray, float& t) {
+        //std::ofstream //debugLog("debug.log", std::ios_base::app);
+
         if (!Plane::intersect(ray, t)) {
+            //debugLog << "No intersection with the plane" << std::endl;
             return false;
         }
+        
         vec3 p = ray.point_at_parameter(t);
-        vec3 ap = p - pp; // Aqui foi colocado diretamente o plano, já que pp é uma heranca de Plane
+        vec3 ap = p - pp; 
         double beta = dot(ap, edgeVectorAB);
         double gamma = dot(ap, edgeVectorAC);
-        double alpha = 1 - beta - gamma;
+        double alpha = 1 - (gamma + beta);
+
+        //debugLog << "Intersection point: " << p << std::endl;
+        //debugLog << "Barycentric coordinates (alpha, beta, gamma): " << alpha << ", " << beta << ", " << gamma << std::endl;
+
         if (alpha < -EPS || beta < -EPS || gamma < -EPS) {
+            //debugLog << "Intersection point failed barycentric test" << std::endl;
             return false;
         }
+
         return true;
     }
+
 
     void applyMatrix(const Matrix& m){
         Plane::applyMatrix(m);
