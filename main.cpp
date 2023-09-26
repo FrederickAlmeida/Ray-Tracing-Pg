@@ -1,4 +1,5 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <tuple>
 #include "shapes.hpp"
 #include "camera.hpp"
 using namespace std;
