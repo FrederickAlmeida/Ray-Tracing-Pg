@@ -1,4 +1,4 @@
-#include "transformations.hpp"
+#include "render.hpp"
 
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
@@ -16,45 +16,13 @@ int signum(float value) {
     }
 }
 
-// Definição de um raio com origem e direção
-struct Ray {
-    vec3 origin;
-    vec3 direction;
-
-    Ray(const vec3& origin, const vec3& direction) : origin(origin), direction(direction) {}
-
-    // Função para calcular um ponto ao longo do raio a partir de um parâmetro t
-    vec3 point_at_parameter(float t) const {
-        return origin + t * direction;
-    }
-};
-
-// Classe abstracta para representar formas geométricas
-struct Shape {
-    vec3 color;
-
-    Shape(const vec3& color) : color(color) {}
-
-    // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
-    virtual bool intersect(const Ray& ray, float& t) {
-        return false; // Implementação default retorna false
-    }
-
-    virtual void applyMatrix(const Matrix& matrix) {
-        // Implementação default não faz nada
-    }
-
-    virtual vec3 getNormal(const vec3& point) {
-        return {}; // Implementação default retorna vetor nulo
-    }
-};
 
 // Definição de uma esfera
 struct Sphere : public Shape {
     vec3 center;
     float radius;
 
-    Sphere(const vec3& color, const vec3& center, float radius) : Shape(color), center(center), radius(radius) {}
+    Sphere(const vec3& color, float ka, float kd, float ks, int eta, const vec3& center, float radius) : Shape(color, ka, kd, ks, eta), center(center), radius(radius) {}
 
     // Função para testar interseção entre um raio e a esfera
     bool intersect(const Ray& ray, float& t) {
@@ -97,7 +65,7 @@ struct Plane : public Shape {
     vec3 pp; // Ponto pertencente ao plano
     vec3 normal; // Normal do plano
 
-    Plane(const vec3& color, const vec3& pp, const vec3& normal) : Shape(color), pp(pp), normal(unit_vector(normal)) {}
+    Plane(const vec3& color, float ka, float kd, float ks, int eta, const vec3& pp, const vec3& normal) : Shape(color, ka, kd, ks, eta), pp(pp), normal(unit_vector(normal)) {}
 
     // Função para testar interseção entre um raio e o plano
     bool intersect(const Ray& ray, float& t) {
@@ -126,7 +94,7 @@ struct Plane : public Shape {
 struct Triangle : public Plane {
     vec3 edgeVectorAB, edgeVectorAC;
 
-    Triangle(const vec3& color, const vec3& a, const vec3& b, const vec3& c) : Plane(color, a, unit_vector(cross(b-a, c-a))) {
+    Triangle(const vec3& color, float ka, float kd, float ks, int eta, const vec3& a, const vec3& b, const vec3& c) : Plane(color, ka, kd, ks, eta, a, unit_vector(cross(b-a, c-a))) {
         //std::ofstream debugLog("debug.log", std::ios_base::app); 
 
 
@@ -153,7 +121,7 @@ struct Triangle : public Plane {
             return false;
         }
         
-        vec3 p = ray.point_at_parameter(t);
+        vec3 p = ray.pointAtParameter(t);
         vec3 ap = p - pp; 
         double beta = dot(ap, edgeVectorAB);
         double gamma = dot(ap, edgeVectorAC);

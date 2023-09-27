@@ -4,7 +4,12 @@
 #include "camera.hpp"
 using namespace std;
 
-vector<Shape*> objectList;
+
+extern vec3 ambientLight;
+extern std::vector<Light> lights;
+extern std::vector<Shape*> shapes;
+
+//vector<Shape*> objectList;
 
 int main(){
     Camera* camera = nullptr;
@@ -22,13 +27,21 @@ int main(){
         else if (input == 's'){
             vec3 color, center;
             float radius;
-            cin >> center >> radius >> color;
-            objectList.push_back(new Sphere(color, center, radius));
+            float kd, ks, ka;
+            int eta;
+            cin >> center >> radius >> color >> kd >> ks >> ka >> eta;
+            //shapes.push_back(new Sphere(color, center, radius, kd, ks, ka, eta));
+            color = color/255.0;
+            shapes.push_back(new Sphere(color, ka, kd, ks, eta, center, radius));
         }
         else if  (input == 'p'){
             vec3 p0, n, o;
-            cin >> p0 >> n >> o;
-            objectList.push_back(new Plane(o, p0, n));
+            float kd, ks, ka;
+            int eta;
+            cin >> p0 >> n >> o >> kd >> ks >> ka >> eta;
+            o = o/255.0;
+            shapes.push_back(new Plane(o, ka, kd, ks, eta, p0, n));
+            //objectList.push_back(new Plane(o, p0, n));
         }
         else if (input == 't'){
             int qntFaces, qntVertices;
@@ -49,13 +62,28 @@ int main(){
             }
 
             vec3 o;
-            cin >> o;
+            float kd, ks, ka;
+            int eta;
+            cin >> o >> kd >> ks >> ka >> eta;
+            o = o/255.0;
             for (auto [i,j,k] : faces){
-                objectList.push_back(new Triangle(o, verticesList[i], verticesList[j], verticesList[k]));
+                shapes.push_back(new Triangle(o, ka, kd, ks, eta, verticesList[i], verticesList[j], verticesList[k]));
+                //objectList.push_back(new Triangle(o, verticesList[i], verticesList[j], verticesList[k]));
             }
+        }
+        else if (input == 'l') {
+            Light light;
+            cin >> light.position >> light.intensity;
+            light.intensity = light.intensity/255.0;
+            lights.push_back(light);
+        }
+        else if (input == 'a') {
+            cin >> ambientLight;
+            ambientLight = ambientLight/255.0;
         }
         else if (input == 'e'){break;}
     }
-    camera->render(f, vres, hres, objectList);
+    //camera->render(f, vres, hres, objectList);
+    camera->render(f, vres, hres);
     return 0;
 }
