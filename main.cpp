@@ -1,6 +1,5 @@
 #include <iostream>
 #include <tuple>
-#include "shapes.hpp"
 #include "camera.hpp"
 using namespace std;
 
@@ -31,7 +30,7 @@ int main(){
             int eta;
             cin >> center >> radius >> color >> kd >> ks >> ka >> eta;
             //shapes.push_back(new Sphere(color, center, radius, kd, ks, ka, eta));
-            color = color/255.0;
+            //color = color/255.0;
             shapes.push_back(new Sphere(color, ka, kd, ks, eta, center, radius));
         }
         else if  (input == 'p'){
@@ -39,7 +38,7 @@ int main(){
             float kd, ks, ka;
             int eta;
             cin >> p0 >> n >> o >> kd >> ks >> ka >> eta;
-            o = o/255.0;
+            //o = o/255.0;
             shapes.push_back(new Plane(o, ka, kd, ks, eta, p0, n));
             //objectList.push_back(new Plane(o, p0, n));
         }
@@ -74,12 +73,12 @@ int main(){
         else if (input == 'l') {
             Light light;
             cin >> light.position >> light.intensity;
-            light.intensity = light.intensity/255.0;
+            //light.intensity = light.intensity/255.0;
             lights.push_back(light);
         }
         else if (input == 'a') {
             cin >> ambientLight;
-            ambientLight = ambientLight/255.0;
+            //ambientLight = ambientLight/255.0;
         }
         else if (input == 'e'){break;}
     }
