@@ -1,6 +1,7 @@
 #include <iostream>
 #include <limits>
 #include "shapes.hpp"
+#include <cmath>
 using namespace std;
 
 #ifndef CAMERA_HPP
@@ -53,6 +54,9 @@ void Camera::render(float f, int vres, int hres) {
             try {
                 vec3 pixelPosition = topleft + (u * j - v * i) * square_side;
                 vec3 pixelColor = rayCast(Ray(eye, unit_vector(pixelPosition - eye)));
+                for(int k=0;k<3;k++){
+                    pixelColor[k] = std::round(pixelColor[k]);
+                }
                 std::cout << pixelColor << std::endl;
             }catch (const std::exception& e) {
                 std::cerr << "Error in i=" << i << " j=" << j << e.what() << std::endl;

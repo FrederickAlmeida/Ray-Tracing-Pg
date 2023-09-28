@@ -30,7 +30,7 @@ int main(){
             int eta;
             cin >> center >> radius >> color >> kd >> ks >> ka >> eta;
             //shapes.push_back(new Sphere(color, center, radius, kd, ks, ka, eta));
-            //color = color/255.0;
+            color = color/255.0;
             shapes.push_back(new Sphere(color, ka, kd, ks, eta, center, radius));
         }
         else if  (input == 'p'){
@@ -38,7 +38,7 @@ int main(){
             float kd, ks, ka;
             int eta;
             cin >> p0 >> n >> o >> kd >> ks >> ka >> eta;
-            //o = o/255.0;
+            o = o/255.0;
             shapes.push_back(new Plane(o, ka, kd, ks, eta, p0, n));
             //objectList.push_back(new Plane(o, p0, n));
         }
