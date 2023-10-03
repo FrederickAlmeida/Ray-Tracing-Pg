@@ -5,37 +5,23 @@
 
 const float EPS = 1e-6f;
 
-// Função para determinar o sinal de um número real
-int signum(float value) {
-    if (std::abs(value) < EPS) {
-        return 0; // O valor é zero
-    } else if (value < 0) {
-        return -1; // O valor é negativo
-    } else {
-        return 1; // O valor é positivo
-    }
-}
-
 // Definição de um raio com origem e direção
 struct Ray {
     vec3 origin;
     vec3 direction;
 
-    Ray(const vec3& origin, const vec3& direction) : origin(origin), direction(direction) {}
+    Ray (const vec3& origin, const vec3& direction) : origin(origin + direction * 1e-5), direction(direction) {}
 
     // Função para calcular um ponto ao longo do raio a partir de um parâmetro t
-    vec3 point_at_parameter(float t) const {
-        return origin + t * direction;
+    vec3 pointAtParameter(float t) const {
+        return origin + direction * t;
     }
 };
 
-// Classe abstracta para representar formas geométricas
-struct Shape {
-    vec3 color;
+class Shape{
+public:
 
-    Shape(const vec3& color) : color(color) {}
-
-    // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
+     // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
     virtual bool intersect(const Ray& ray, float& t) {
         return false; // Implementação default retorna false
     }
@@ -50,11 +36,13 @@ struct Shape {
 };
 
 // Definição de uma esfera
-struct Sphere : public Shape {
+class Sphere : public Shape {
     vec3 center;
     float radius;
 
-    Sphere(const vec3& color, const vec3& center, float radius) : Shape(color), center(center), radius(radius) {}
+public:
+
+    Sphere(const vec3& center, float radius) : center(center), radius(radius) {}
 
     // Função para testar interseção entre um raio e a esfera
     bool intersect(const Ray& ray, float& t) {
@@ -93,11 +81,14 @@ struct Sphere : public Shape {
 };
 
 // Definição de um plano
-struct Plane : public Shape {
+class Plane : public Shape {
+protected:
     vec3 pp; // Ponto pertencente ao plano
     vec3 normal; // Normal do plano
 
-    Plane(const vec3& color, const vec3& pp, const vec3& normal) : Shape(color), pp(pp), normal(unit_vector(normal)) {}
+public:
+
+    Plane(const vec3& pp, const vec3& normal) : pp(pp), normal(unit_vector(normal)) {}
 
     // Função para testar interseção entre um raio e o plano
     bool intersect(const Ray& ray, float& t) {
@@ -123,12 +114,12 @@ struct Plane : public Shape {
 };
 
 // Definição de um triângulo
-struct Triangle : public Plane {
+class Triangle : public Plane {
     vec3 edgeVectorAB, edgeVectorAC;
 
-    Triangle(const vec3& color, const vec3& a, const vec3& b, const vec3& c) : Plane(color, a, unit_vector(cross(b-a, c-a))) {
-        //std::ofstream debugLog("debug.log", std::ios_base::app); 
+public:
 
+    Triangle(const vec3& a, const vec3& b, const vec3& c) : Plane(a, unit_vector(cross(b-a, c-a))) {
 
 
         vec3 u = b - a;
@@ -140,30 +131,24 @@ struct Triangle : public Plane {
         edgeVectorAC = v - projvu;
         edgeVectorAC = edgeVectorAC / dot(edgeVectorAC, edgeVectorAC);
 
-        //debugLog << "Triangle vertices: " << a << ", " << b << ", " << c << std::endl;
-        //debugLog << "Plane point (pp): " << pp << std::endl;
-        //debugLog << "Plane normal: " << normal << std::endl;
     }
 
     bool intersect(const Ray& ray, float& t) {
-        //std::ofstream //debugLog("debug.log", std::ios_base::app);
 
         if (!Plane::intersect(ray, t)) {
-            //debugLog << "No intersection with the plane" << std::endl;
+
             return false;
         }
         
-        vec3 p = ray.point_at_parameter(t);
+        vec3 p = ray.pointAtParameter(t);
         vec3 ap = p - pp; 
         double beta = dot(ap, edgeVectorAB);
         double gamma = dot(ap, edgeVectorAC);
         double alpha = 1 - (gamma + beta);
 
-        //debugLog << "Intersection point: " << p << std::endl;
-        //debugLog << "Barycentric coordinates (alpha, beta, gamma): " << alpha << ", " << beta << ", " << gamma << std::endl;
+
 
         if (alpha < -EPS || beta < -EPS || gamma < -EPS) {
-            //debugLog << "Intersection point failed barycentric test" << std::endl;
             return false;
         }
 
