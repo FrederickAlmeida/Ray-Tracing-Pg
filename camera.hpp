@@ -1,6 +1,6 @@
 #include <iostream>
 #include <limits>
-#include "shapes.hpp"
+#include "render.hpp"
 #include <cmath>
 using namespace std;
 
@@ -20,29 +20,10 @@ public:
         v = cross(w,u);
     }
 
-    // void render(float f, int vres, int hres, vector<Shape*> &objectList);
     void render(float f, int vres, int hres);
 
     void applyMatrix (const Matrix& m);
 };
-
-// void Camera::render(float f, int vres, int hres, vector<Shape*> &objectList) {
-//     vec3 topleft = eye - w*f + (v*(vres - 1) - u*(hres - 1))*square_side/2.0;
-//     std::cout << "P3" << std::endl;
-//     std::cout << hres << ' ' << vres << std::endl;
-//     std::cout << 255 << std::endl;
-//     for(int i=0; i<vres; i++){
-//         for(int j=0; j<hres; j++){
-//             try {
-//                 vec3 pixelPosition = topleft + (u * j - v * i) * square_side;
-//                 vec3 pixelColor = rayCast(Ray(eye, unit_vector(pixelPosition - eye)),objectList);
-//                 std::cout << pixelColor << std::endl;
-//             }catch (const std::exception& e) {
-//                 std::cerr << "Error in i=" << i << " j=" << j << e.what() << std::endl;
-//             }
-//         }
-//     }
-// }
 
 void Camera::render(float f, int vres, int hres) {
     vec3 topleft = eye - w*f + (v*(vres - 1) - u*(hres - 1))*square_side/2.0;
@@ -53,7 +34,7 @@ void Camera::render(float f, int vres, int hres) {
         for(int j=0; j<hres; j++){
             try {
                 vec3 pixelPosition = topleft + (u * j - v * i) * square_side;
-                vec3 pixelColor = rayCast(Ray(eye, unit_vector(pixelPosition - eye)));
+                vec3 pixelColor = ray_cast(Ray(eye, unit_vector(pixelPosition - eye)));
                 for(int k=0;k<3;k++){
                     pixelColor[k] = std::round(pixelColor[k]);
                 }

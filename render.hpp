@@ -1,20 +1,47 @@
-#include "transformations.hpp"
+#include "shapes.hpp"
 #include <iostream>
 #include <vector>
 #include <limits>
 
-// Definição de um raio com origem e direção
-struct Ray {
-    vec3 origin;
-    vec3 direction;
+class Material{
+    Shape* shape;
+    vec3 color;
+    float ka, kd, ks;
+    int eta;
 
-    Ray (const vec3& origin, const vec3& direction) : origin(origin + direction * 1e-5), direction(direction) {}
+public:
+    Material(Shape* shape, vec3 color, float ka, float kd, float ks, int eta) : shape(shape), color(color), ka(ka), kd(kd), ks(ks), eta(eta) {}
 
-    // Função para calcular um ponto ao longo do raio a partir de um parâmetro t
-    vec3 pointAtParameter(float t) const {
-        return origin + direction * t;
+    Shape* getShape() const {
+        return shape;
     }
+
+    vec3 shade (const vec3&  point, const vec3& view);
 };
+
+std::vector<Material> objects;
+
+Material* nearest (const Ray& ray, float& t_min) {
+    Material* hit = nullptr;
+    for (Material& material: objects){
+        float t;
+        if (material.getShape()->intersect(ray, t) && (!hit || t < t_min)){
+            t_min = t;
+            hit = &material;
+        }
+    }
+    return hit;
+}
+
+vec3 ray_cast (const Ray& ray) {
+    float t_min;
+    Material* hit = nearest(ray, t_min);
+    if (hit){
+        vec3 point = ray.pointAtParameter(t_min);
+        return hit->shade(point, -ray.direction);
+    }
+    return vec3(0, 0, 0);
+}
 
 struct Light {
     vec3 position;
@@ -28,58 +55,8 @@ struct Light {
 vec3 ambientLight = vec3(0, 0, 0);
 std::vector<Light> lights;
 
-// Classe abstracta para representar formas geométricas
-struct Shape {
-    vec3 color;
-    float ka, kd, ks;
-    int eta;
-
-    Shape (const vec3 &color, float ka, float kd, float ks, int eta) : color(color), ka(ka), kd(kd), ks(ks), eta(eta) {}
-
-    virtual bool intersect(const Ray& ray, float& t) {
-        return {};
-    }
-
-    virtual void applyMatrix(const Matrix& m) {
-        return;
-    }
-
-    virtual vec3 normalAt(const vec3& point) {
-        return {};
-    }
-
-    vec3 shade (const vec3 &point, const vec3 &view, const vec3 &normal);
-
-};
-
-std::vector<Shape*> shapes;
-
-Shape* nearest (const Ray& ray, float& t_min) {
-    Shape* hit = nullptr;
-    for (Shape* shape: shapes){
-        float t;
-        if (shape->intersect(ray, t) && (!hit || t < t_min)){
-            t_min = t;
-            hit = shape;
-        }
-    }
-    return hit;
-}
-
-vec3 rayCast (const Ray& ray) {
-    // precisa inicializar?
-    float t_min;
-    Shape* hit = nearest(ray, t_min);
-
-    if (hit) {
-        vec3 point = ray.pointAtParameter(t_min);
-        return hit->shade(point, ray.direction*-1, hit->normalAt(point));
-    } else {
-        return vec3(0,0,0);
-    }
-}
-
-vec3 Shape::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
+vec3 Material::shade (const vec3 &point, const vec3 &view) {
+    vec3 normal = shape->getNormal(point);
     vec3 color = ambientLight * ka * this->color;
     for (Light light : lights) {
         vec3 lightDirection = unit_vector(light.position - point);
@@ -91,12 +68,12 @@ vec3 Shape::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
         if (shadow == nullptr || dot(lightDirection, light.position - point) < t) {
             float dotdiff = dot(lightDirection, normal);
             if (dotdiff > 0) {
-                color += light.intensity * kd * dotdiff * this->color;
+                color = color + light.intensity * kd * dotdiff * this->color;
             }
 
             float dotspec = dot(r, view);
             if (dotspec > 0) {
-                color += light.intensity * ks * pow(dotspec, eta);
+                color = color + light.intensity * ks * pow(dotspec, eta);
             }
         }
     }
