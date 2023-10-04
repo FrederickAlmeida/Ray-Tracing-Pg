@@ -1,43 +1,31 @@
 #include "transformations.hpp"
 
+
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
 
-const float EPS = 1e-6f;
 
-// Função para determinar o sinal de um número real
-int signum(float value) {
-    if (std::abs(value) < EPS) {
-        return 0; // O valor é zero
-    } else if (value < 0) {
-        return -1; // O valor é negativo
-    } else {
-        return 1; // O valor é positivo
-    }
-}
+const double EPS = 1e-6;
 
 // Definição de um raio com origem e direção
 struct Ray {
     vec3 origin;
     vec3 direction;
 
-    Ray(const vec3& origin, const vec3& direction) : origin(origin), direction(direction) {}
+    Ray (const vec3& origin, const vec3& direction) : origin(origin + direction * 1e-5), direction(direction) {}
 
     // Função para calcular um ponto ao longo do raio a partir de um parâmetro t
-    vec3 point_at_parameter(float t) const {
-        return origin + t * direction;
+    vec3 pointAtParameter(double t) const {
+        return origin + direction * t;
     }
 };
 
-// Classe abstracta para representar formas geométricas
-struct Shape {
-    vec3 color;
+class Shape{
+public:
 
-    Shape(const vec3& color) : color(color) {}
-
-    // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
-    virtual bool intersect(const Ray& ray, float& t) {
-        return false; // Implementação default retorna false
+     // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
+    virtual bool intersect(const Ray& ray, double& t) {
+        return {}; // Implementação default
     }
 
     virtual void applyMatrix(const Matrix& matrix) {
@@ -50,26 +38,28 @@ struct Shape {
 };
 
 // Definição de uma esfera
-struct Sphere : public Shape {
+class Sphere : public Shape {
     vec3 center;
-    float radius;
+    double radius;
 
-    Sphere(const vec3& color, const vec3& center, float radius) : Shape(color), center(center), radius(radius) {}
+public:
+
+    Sphere(const vec3& center, double radius) : center(center), radius(radius) {}
 
     // Função para testar interseção entre um raio e a esfera
-    bool intersect(const Ray& ray, float& t) {
+    bool intersect(const Ray& ray, double& t) {
         vec3 v = center - ray.origin;
-        float tca = dot(v, ray.direction);
-        float d2 = dot(v, v) - tca * tca;
-        float r2 = radius * radius;
+        double tca = dot(v, ray.direction);
+        double d2 = dot(v, v) - tca * tca;
+        double r2 = radius * radius;
 
         if (d2 - r2 > EPS) { // edit: comparacao com o EPS ao inves de 0
             return false;
         }
 
-        float thc = sqrt(r2 - d2);
-        float t0 = tca - thc;
-        float t1 = tca + thc;
+        double thc = sqrt(r2 - d2);
+        double t0 = tca - thc;
+        double t1 = tca + thc;
         t = t0;
 
         if (t0 < EPS) {
@@ -93,15 +83,18 @@ struct Sphere : public Shape {
 };
 
 // Definição de um plano
-struct Plane : public Shape {
+class Plane : public Shape {
+protected:
     vec3 pp; // Ponto pertencente ao plano
     vec3 normal; // Normal do plano
 
-    Plane(const vec3& color, const vec3& pp, const vec3& normal) : Shape(color), pp(pp), normal(unit_vector(normal)) {}
+public:
+
+    Plane(const vec3& pp, const vec3& normal) : pp(pp), normal(unit_vector(normal)) {}
 
     // Função para testar interseção entre um raio e o plano
-    bool intersect(const Ray& ray, float& t) {
-        float aux = dot(normal, ray.direction);
+    bool intersect(const Ray& ray, double& t) {
+        double aux = dot(normal, ray.direction);
 
         if (std::abs(aux) < EPS) {
             return false;
@@ -123,35 +116,47 @@ struct Plane : public Shape {
 };
 
 // Definição de um triângulo
-struct Triangle : public Plane {
+class Triangle : public Plane {
     vec3 edgeVectorAB, edgeVectorAC;
 
-    Triangle(const vec3& color, const vec3& a, const vec3& b, const vec3& c) : Plane(color, a, unit_vector(cross(b-a, c-a))) {
+public:
+
+    Triangle(const vec3& a, const vec3& b, const vec3& c) : Plane(a, unit_vector(cross(b-a, c-a))) {
+
+
         vec3 u = b - a;
         vec3 v = c - a;
         vec3 projuv = v * (dot(u, v) / dot(v, v));
-        vec3 projvu = u * (dot(v, u) / dot(u, u));
+        vec3 projvu = u * (dot(u, v) / dot(u, u));
         edgeVectorAB = u - projuv;
-        edgeVectorAB = edgeVectorAB / edgeVectorAB.length();
+        edgeVectorAB = edgeVectorAB / dot(edgeVectorAB, edgeVectorAB);
         edgeVectorAC = v - projvu;
-        edgeVectorAC = edgeVectorAC / edgeVectorAC.length();
+        edgeVectorAC = edgeVectorAC / dot(edgeVectorAC, edgeVectorAC);
+
     }
 
-    // Função para testar interseção entre um raio e o triângulo
-    bool intersect(const Ray& ray, float& t) {
+    bool intersect(const Ray& ray, double& t) {
+
         if (!Plane::intersect(ray, t)) {
+
             return false;
         }
-        vec3 p = ray.point_at_parameter(t);
-        vec3 ap = p - pp; // Aqui foi colocado diretamente o plano, já que pp é uma heranca de Plane
+        
+        vec3 p = ray.pointAtParameter(t);
+        vec3 ap = p - pp; 
         double beta = dot(ap, edgeVectorAB);
         double gamma = dot(ap, edgeVectorAC);
-        double alpha = 1 - beta - gamma;
+        double alpha = 1 - (gamma + beta);
+
+
+
         if (alpha < -EPS || beta < -EPS || gamma < -EPS) {
             return false;
         }
+
         return true;
     }
+
 
     void applyMatrix(const Matrix& m){
         Plane::applyMatrix(m);

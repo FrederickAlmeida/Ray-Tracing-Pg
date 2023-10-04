@@ -3,7 +3,7 @@ import os
 from PIL import Image
 
 def compile(cpp_file, compiled_file):
-    compile_command = f"g++ {cpp_file} -o {compiled_file}"
+    compile_command = f"g++ -std=c++17 {cpp_file} -o {compiled_file}"
     try:
         subprocess.run(compile_command, shell=True, check=True)
         print("Compilação bem-sucedida.")

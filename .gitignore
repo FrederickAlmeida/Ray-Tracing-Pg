@@ -3,3 +3,7 @@ cmake-build-debug
 .idea
 make_input.py
 main.exe
+output.exe
+output.ppm
+saida.png
+debug.log
