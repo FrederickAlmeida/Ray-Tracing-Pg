@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <fstream>
 
 class Material{
     Shape* shape;
@@ -26,13 +27,13 @@ public:
         float cosi = dot(normal, view);
         vec3 n2 = normal;
         float ior2 = ior;
-        if (cosi < 0) {
+        if (cosi < 0.0) {
             n2 = -n2;
-            ior2 = 1/ior2 ;
+            ior2 = 1.0/ior2 ;
             cosi *= -1;  
         }
-        float delta = 1 - (1 - cosi * cosi) / (ior2 * ior2);
-        if (delta < 0) {
+        float delta = 1.0 - (1.0 - cosi * cosi) / (ior2 * ior2);
+        if (delta < 0.0) {
             throw -1;
         }
         return view / (-ior2) - n2 * (sqrt(delta) - cosi/ior2);
@@ -53,11 +54,16 @@ Material* nearest (const Ray& ray, float& t_min) {
     return hit;
 }
 
+float dist (const vec3& a, const vec3& b) {
+    return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2) + pow(a[2] - b[2], 2));
+}
+
 vec3 ray_trace (const Ray& ray, int ttl) {
     vec3 colour = vec3(0, 0, 0);
     float t_min;
+    vec3 r_origin = ray.origin;
     Material* hit = nearest(ray, t_min);
-    if (hit){
+    if (hit && (dist(r_origin, ray.pointAtParameter(t_min)) > 1e-6f)){
         vec3 point = ray.pointAtParameter(t_min);
         vec3 view = - ray.direction;
         vec3 normal = hit->getShape()->getNormal(point);
@@ -65,11 +71,11 @@ vec3 ray_trace (const Ray& ray, int ttl) {
         if (ttl > 0) {
             Ray reflectedRay(point, normal*(2.0*dot(normal, view)) - view);
             try{
-                if (hit->kt > 0) {
+                if (hit->kt > 0.0) {
                 Ray refractedRay(point, hit->refract(view, normal));
                 colour = colour + ray_trace(refractedRay, ttl - 1) * hit->kt;
                 }
-                if (hit->kr > 0) {
+                if (hit->kr > 0.0) {
                 colour = colour + ray_trace(reflectedRay, ttl - 1) * hit->kr;
                 }
             } catch (int e) {
@@ -92,26 +98,33 @@ struct Light {
 vec3 ambientLight = vec3(0, 0, 0);
 std::vector<Light> lights;
 
+std::ofstream debuglog("debug.log");
+
 vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
-    vec3 color = ambientLight * ka * this->color;
+    vec3 res_color = (ambientLight * ka) * color;
+    // debuglog << "color: " << color << std::endl;
+    // debuglog << "ambient light: " << ambientLight << std::endl;
+    // debuglog << "res_color: " << res_color << std::endl;
     for (Light light : lights) {
+        debuglog << "light intensity: " << light.intensity << std::endl;
         vec3 lightDirection = unit_vector(light.position - point);
         vec3 r = normal*2.0*(dot(normal, lightDirection)) - lightDirection;
 
         float t;
         auto shadow = nearest(Ray(point, lightDirection), t);
 
-        if (shadow == nullptr || dot(lightDirection, light.position - point) < t) {
+        if (shadow == nullptr || dot(lightDirection, light.position - point) > t) {
             float dotdiff = dot(lightDirection, normal);
             if (dotdiff > 0) {
-                color = color + light.intensity * kd * dotdiff * this->color;
+                res_color = res_color + light.intensity * kd * dotdiff * color;
             }
 
             float dotspec = dot(r, view);
             if (dotspec > 0) {
-                color = color + light.intensity * ks * pow(dotspec, eta);
+                res_color = res_color + light.intensity * ks * pow(dotspec, eta);
             }
         }
     }
-    return color;
+    // debuglog << "res_color final: " << res_color << std::endl;
+    return res_color;
 }

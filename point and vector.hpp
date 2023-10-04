@@ -84,7 +84,16 @@ inline std::istream& operator>>(std::istream &is, vec3 &t) {
 }
 
 // ok
-inline std::ostream& operator<<(std::ostream &os, const vec3 &t) {
+inline std::ostream& operator<<(std::ostream &os, vec3 &t) {
+    // float temp = 1.0;
+    // for (int i = 0; i < 3; i++) {
+    //     temp = std::max(temp, t.vetor[i]);
+    // }
+    
+    // t[0] = t[0]*float(255.999)/temp;
+    // t[1] = t[1]*float(255.999)/temp;
+    // t[2] = t[2]*float(255.999)/temp;
+
     os << t.vetor[0] << " " << t.vetor[1] << " " << t.vetor[2];
     return os;
 }
