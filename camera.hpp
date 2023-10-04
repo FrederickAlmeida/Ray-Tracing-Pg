@@ -20,35 +20,30 @@ public:
         v = cross(w,u);
     }
 
-    void render(float f, int vres, int hres, int max_depth);
-
-    void applyMatrix (const Matrix& m);
-};
-
-void Camera::render(float f, int vres, int hres, int max_depth) {
-    vec3 topleft = eye - w*f + (v*(vres - 1) - u*(hres - 1))*square_side/2.0;
-    std::cout << "P3" << std::endl;
-    std::cout << hres << ' ' << vres << std::endl;
-    std::cout << 255 << std::endl;
-    for(int i=0; i<vres; i++){
-        for(int j=0; j<hres; j++){
-            try {
+    void render(float f, int vres, int hres, int max_depth) {
+        vec3 topleft = eye - w*f + (v*(vres - 1) - u*(hres - 1))*square_side/2.0;
+        std::cout << "P3" << std::endl;
+        std::cout << hres << ' ' << vres << std::endl;
+        std::cout << 255 << std::endl;
+        for(int i=0; i<vres; i++){
+            for(int j=0; j<hres; j++){
                 vec3 pixelPosition = topleft + (u * j - v * i) * square_side;
                 vec3 pixelColor = ray_trace(Ray(eye, unit_vector(pixelPosition - eye)), max_depth);
-                for(int k=0;k<3;k++){
-                    pixelColor[k] = std::round(pixelColor[k]);
-                }
                 std::cout << pixelColor << std::endl;
-            }catch (const std::exception& e) {
-                std::cerr << "Error in i=" << i << " j=" << j << e.what() << std::endl;
             }
         }
     }
-}
 
-void Camera::applyMatrix(const Matrix &m) {
-    eye = unit_vector(m *eye);
-    u = m*u; v = m*v; w = m*w;
-}
+
+
+    void applyMatrix (const Matrix& m){
+        eye = unit_vector(m *eye);
+        u = m*u; v = m*v; w = m*w;
+    }
+
+
+};
+
+
 
 #endif

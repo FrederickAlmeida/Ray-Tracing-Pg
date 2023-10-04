@@ -23,7 +23,7 @@ public:
 
      // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
     virtual bool intersect(const Ray& ray, float& t) {
-        return false; // Implementação default retorna false
+        return {}; // Implementação default
     }
 
     virtual void applyMatrix(const Matrix& matrix) {

@@ -23,13 +23,13 @@ int main(){
             camera = new Camera(c, m , up);
         }
         else if (input == 's'){
-            vec3 color, center;
+            vec3 o, center;
             float radius;
             float kd, ks, ka, kr, kt, ior;
             int eta;
-            cin >> center >> radius >> color >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
-            color = color/255.0;
-            objects.emplace_back(new Sphere(center, radius), color, ka, kd, ks, kr, kt, eta ,ior);
+            cin >> center >> radius >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
+            o = o/255.0;
+            objects.emplace_back(new Sphere(center, radius), o, ka, kd, ks, kr, kt, eta ,ior);
         }
         else if  (input == 'p'){
             vec3 p0, n, o;
@@ -74,7 +74,7 @@ int main(){
         }
         else if (input == 'a') {
             cin >> ambientLight;
-            // ambientLight = ambientLight/255.0;
+            //ambientLight = ambientLight/255.0;
         }
         else if (input == 'e'){break;}
     }
