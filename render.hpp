@@ -2,49 +2,54 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <fstream>
+
+//std::ofstream debuglog("debug.log");
 
 class Material{
     Shape* shape;
     vec3 color;
-    float ka, kd, ks;
+    double ka, kd, ks;
     int eta;
-    float ior;
+    double ior;
 
 public:
-    float kr, kt;
+    double kr, kt;
 
-    Material (Shape* shape, const vec3& color, float ka, float kd, float ks, float kr, float kt, float ior ,int eta) :
-            shape(shape), color(color), kd(kd), ks(ks), ka(ka), kr(kr), kt(kt), eta(eta), ior(ior) {}
+    Material(Shape* shape, vec3 color, double ka, double kd, double ks, double kr, double kt, int eta, double ior) : 
+    shape(shape), color(color/255.0f), ka(ka), kd(kd), ks(ks), kr(kr), kt(kt), eta(eta), ior(ior) {}
 
     Shape* getShape() const {
         return shape;
     }
 
-    vec3 shade (const vec3&  point, const vec3& view, const vec3& n);
+    vec3 shade (const vec3&  point, const vec3& view, const vec3& normal);
 
-    vec3 refract (const vec3& v, const vec3& n){
-        float d = dot(n, v);
-        vec3 n2 = n;
-        float ior2 = ior;
-        if (d < 0.0) {
-            n2 = n2*-1;
-            ior2 = 1.0/ior2;
-            d *= -1;
+    vec3 refract(const vec3& view, const vec3& normal) {
+        double cosi = dot(normal, view);
+        vec3 n2 = normal;
+        double ior2 = ior;
+        if (cosi < 0.0) {
+            n2 = -n2;
+            ior2 = 1.0/ior2 ;
+            cosi *= -1;  
         }
-        float delta = 1.0 - (1.0 - d*d)/(ior2*ior2);
+        double delta = 1.0 - (1.0 - cosi * cosi) / (ior2 * ior2);
         if (delta < 0.0) {
             throw -1;
         }
-        return v/(-ior2) - n2*(sqrt(delta) - d/ior2);
+        return view / (-ior2) - n2 * (sqrt(delta) - cosi/ior2);
     }
 };
 
 std::vector<Material> objects;
 
-Material* nearest (const Ray& ray, float& t_min) {
+Material* nearest (const Ray& ray, double& t_min) {
     Material* hit = nullptr;
     for (Material& material: objects){
-        float t;
+        double t;
+        bool cond1 = material.getShape()->intersect(ray, t);
+        bool cond2 = (!hit || t < t_min);
         if (material.getShape()->intersect(ray, t) && (!hit || t < t_min)){
             t_min = t;
             hit = &material;
@@ -53,31 +58,43 @@ Material* nearest (const Ray& ray, float& t_min) {
     return hit;
 }
 
-vec3 ray_tracer (const Ray& ray, int samples) {
-    vec3 cor (0,0,0);
-    float t_min;
-    Material* object = nearest(ray, t_min);
-    if (object){
+double dist (const vec3& a, const vec3& b) {
+    return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2) + pow(a[2] - b[2], 2));
+}
+
+vec3 ray_trace (const Ray& ray, int ttl) {
+    vec3 colour = vec3(0, 0, 0);
+    double t_min;
+    vec3 r_origin = ray.origin;
+    Material* hit = nearest(ray, t_min);
+    if (hit && (dist(r_origin, ray.pointAtParameter(t_min)) > 1e-6f)){
         vec3 point = ray.pointAtParameter(t_min);
-        vec3 v = ray.direction*-1;
-        vec3 n = object->getShape()->getNormal(point);
-        cor = object->shade(point, v, n);
-        if (samples > 0 ){
-            Ray reflection(point, n*(2.0f * dot(n, v)) -v);
-            try {
-                if (object->kt > 0.0){
-                    Ray refract(point, object->refract(v,n));
-                    cor = cor + ray_tracer(refract, samples-1)*object->kt;
+        vec3 view = - ray.direction;
+        vec3 normal = hit->getShape()->getNormal(point);
+
+        //debuglog << "point: " << point << " view: " << view << " normal: " << normal<< "\n";
+
+        colour = hit->shade(point, view, normal);
+
+        //debuglog << "colour: " << colour << "\n";
+        
+        if (ttl > 0) {
+            Ray reflectedRay(point, normal*(2.0*dot(normal, view)) - view);
+            try{
+                if (hit->kt > 0.0) {
+                Ray refractedRay(point, hit->refract(view, normal));
+                colour = colour + ray_trace(refractedRay, ttl - 1) * hit->kt;
                 }
-                if (object->kr > 0.0){
-                    cor = cor + ray_tracer(reflection, samples-1)*object->kt;
+                if (hit->kr > 0.0) {
+                colour = colour + ray_trace(reflectedRay, ttl - 1) * hit->kr;
                 }
-            } catch (int e){
-                cor = cor + ray_tracer(reflection, samples-1);
+            } catch (int e) {
+                colour = colour + ray_trace(reflectedRay, ttl - 1);
             }
+            
         }
     }
-    return cor;
+    return colour;
 }
 
 struct Light {
@@ -92,26 +109,36 @@ struct Light {
 vec3 ambientLight = vec3(0, 0, 0);
 std::vector<Light> lights;
 
-vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3& normal) {
-    vec3 clr = ambientLight * ka * this->color;
+
+vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
+    vec3 res_color = (ambientLight * ka) * color;
+
+    // debuglog << "color: " << color << "\n";
+    // debuglog << "ambient light: " << ambientLight << "\n";
+    // debuglog << "res_color: " << res_color << "\n";
+
     for (Light light : lights) {
+
+        // debuglog << "light intensity: " << light.intensity << "\n";
+
         vec3 lightDirection = unit_vector(light.position - point);
         vec3 r = normal*2.0*(dot(normal, lightDirection)) - lightDirection;
 
-        float t;
+        double t;
         auto shadow = nearest(Ray(point, lightDirection), t);
 
-        if (shadow == nullptr || dot(lightDirection, light.position - point) < t) {
-            float dotdiff = dot(lightDirection, normal);
+        if (shadow == nullptr || dot(lightDirection, light.position - point) > t) {
+            double dotdiff = dot(lightDirection, normal);
             if (dotdiff > 0) {
-                clr = clr + light.intensity * kd * dotdiff * this->color;
+                res_color = res_color + light.intensity * kd * dotdiff * color;
             }
 
-            float dotspec = dot(r, view);
+            double dotspec = dot(r, view);
             if (dotspec > 0) {
-                clr = clr + light.intensity * ks * pow(dotspec, eta);
+                res_color = res_color + light.intensity * ks * pow(dotspec, eta);
             }
         }
     }
-    return color;
+    // debuglog << "res_color final: " << res_color << "\n";
+    return res_color;
 }

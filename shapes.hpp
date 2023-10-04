@@ -1,9 +1,11 @@
 #include "transformations.hpp"
 
+
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
 
-const float EPS = 1e-6f;
+
+const double EPS = 1e-6;
 
 // Definição de um raio com origem e direção
 struct Ray {
@@ -13,7 +15,7 @@ struct Ray {
     Ray (const vec3& origin, const vec3& direction) : origin(origin + direction * 1e-5), direction(direction) {}
 
     // Função para calcular um ponto ao longo do raio a partir de um parâmetro t
-    vec3 pointAtParameter(float t) const {
+    vec3 pointAtParameter(double t) const {
         return origin + direction * t;
     }
 };
@@ -22,8 +24,8 @@ class Shape{
 public:
 
      // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
-    virtual bool intersect(const Ray& ray, float& t) {
-        return false; // Implementação default retorna false
+    virtual bool intersect(const Ray& ray, double& t) {
+        return {}; // Implementação default
     }
 
     virtual void applyMatrix(const Matrix& matrix) {
@@ -38,26 +40,26 @@ public:
 // Definição de uma esfera
 class Sphere : public Shape {
     vec3 center;
-    float radius;
+    double radius;
 
 public:
 
-    Sphere(const vec3& center, float radius) : center(center), radius(radius) {}
+    Sphere(const vec3& center, double radius) : center(center), radius(radius) {}
 
     // Função para testar interseção entre um raio e a esfera
-    bool intersect(const Ray& ray, float& t) {
+    bool intersect(const Ray& ray, double& t) {
         vec3 v = center - ray.origin;
-        float tca = dot(v, ray.direction);
-        float d2 = dot(v, v) - tca * tca;
-        float r2 = radius * radius;
+        double tca = dot(v, ray.direction);
+        double d2 = dot(v, v) - tca * tca;
+        double r2 = radius * radius;
 
         if (d2 - r2 > EPS) { // edit: comparacao com o EPS ao inves de 0
             return false;
         }
 
-        float thc = sqrt(r2 - d2);
-        float t0 = tca - thc;
-        float t1 = tca + thc;
+        double thc = sqrt(r2 - d2);
+        double t0 = tca - thc;
+        double t1 = tca + thc;
         t = t0;
 
         if (t0 < EPS) {
@@ -91,8 +93,8 @@ public:
     Plane(const vec3& pp, const vec3& normal) : pp(pp), normal(unit_vector(normal)) {}
 
     // Função para testar interseção entre um raio e o plano
-    bool intersect(const Ray& ray, float& t) {
-        float aux = dot(normal, ray.direction);
+    bool intersect(const Ray& ray, double& t) {
+        double aux = dot(normal, ray.direction);
 
         if (std::abs(aux) < EPS) {
             return false;
@@ -133,7 +135,7 @@ public:
 
     }
 
-    bool intersect(const Ray& ray, float& t) {
+    bool intersect(const Ray& ray, double& t) {
 
         if (!Plane::intersect(ray, t)) {
 
