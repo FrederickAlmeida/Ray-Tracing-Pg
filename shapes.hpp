@@ -28,12 +28,12 @@ public:
         return {}; // Implementação default
     }
 
-    virtual void applyMatrix(const Matrix& matrix) {
-        // Implementação default não faz nada
-    }
-
     virtual vec3 getNormal(const vec3& point) {
         return {}; // Implementação default retorna vetor nulo
+    }
+
+    virtual void applyTransformation(const Matrix& m) {
+        return;
     }
 };
 
@@ -71,14 +71,14 @@ public:
         return true;
     }
 
-    // Função para aplicar uma matriz de transformação à esfera	
-    void applyMatrix(const Matrix& matrix) {
-        center = matrix * center;
-    }
-
     // Função para obter o vetor normal à esfera num dado ponto
     vec3 getNormal(const vec3& point) {
         return unit_vector(point - center);
+    }
+
+    void applyTransformation(const Matrix& transformationMatrix) {
+        vec3 transformedCenter = transformationMatrix * center;
+        center = transformedCenter;
     }
 };
 
@@ -109,10 +109,14 @@ public:
         return normal;
     }
 
-    void applyMatrix(const Matrix& m){
-        pp = m * pp;
-        normal = unit_vector(m * normal);
+    void applyTransformation(const Matrix& transformationMatrix) {
+        vec3 transformedPoint = transformationMatrix * pp;
+        pp = transformedPoint;
+
+        vec3 transformedNormal = transformationMatrix * normal;
+        normal = unit_vector(transformedNormal);
     }
+
 };
 
 // Definição de um triângulo
@@ -157,12 +161,18 @@ public:
         return true;
     }
 
+    void applyTransformation(const Matrix& transformationMatrix) {
+        vec3 transformedA = transformationMatrix * pp;
+        vec3 transformedB = transformationMatrix * (pp + edgeVectorAB);
+        vec3 transformedC = transformationMatrix * (pp + edgeVectorAC);
 
-    void applyMatrix(const Matrix& m){
-        Plane::applyMatrix(m);
-        edgeVectorAB = m * edgeVectorAB;
-        edgeVectorAC = m * edgeVectorAC;
+        pp = transformedA;
+        edgeVectorAB = transformedB - transformedA;
+        edgeVectorAC = transformedC - transformedA;
+
+        normal = unit_vector(cross(edgeVectorAB, edgeVectorAC));
     }
+
 };
 
 #endif

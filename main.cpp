@@ -3,6 +3,7 @@
 #include "camera.hpp"
 using namespace std;
 
+#define M_PI 3.14159265358979323846
 
 extern vec3 ambientLight;
 extern std::vector<Light> lights;
@@ -65,6 +66,8 @@ int main(){
             //o = o/255.0;
             for (auto [i,j,k] : faces){
                 objects.emplace_back(new Triangle(verticesList[i], verticesList[j], verticesList[k]), o, ka, kd, ks, kr, kt, eta, ior);
+                objects.back().getShape()->applyTransformation(Matrix::rotation_z(M_PI/12, false));
+                objects.back().getShape()->applyTransformation(Matrix::translation(200, 400, 50));
             }
         }
         else if (input == 'l') {
@@ -81,6 +84,9 @@ int main(){
         }
         else if (input == 'e'){break;}
     }
+    camera->applyTransformation(Matrix::rotation_z(M_PI/4, false));
+    camera->applyTransformation(Matrix::rotation_x(M_PI/9, true));
+    camera->applyTransformation(Matrix::rotation_z(M_PI/4, true));
     camera->render(f, vres, hres, max_depth);
     return 0;
 }

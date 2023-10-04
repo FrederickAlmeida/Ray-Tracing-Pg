@@ -38,17 +38,17 @@ public:
                 double r=pixelColor[0], g= pixelColor[1], b=pixelColor[2];
                 pixelColor = pixelColor;
                 std::cout << pixelColor << "\n";
-                debuglog << "Cor: " <<pixelColor << " i: " << i << " j: " << j << "\n";
+                //debuglog << "Cor: " <<pixelColor << " i: " << i << " j: " << j << "\n";
                 k++;
             }
         }
     }
 
-
-
-    void applyMatrix (const Matrix& m){
-        eye = unit_vector(m *eye);
-        u = m*u; v = m*v; w = m*w;
+    void applyTransformation(const Matrix& transformationMatrix) {
+        eye = transformationMatrix * eye;
+        u = unit_vector(transformationMatrix * u);
+        v = unit_vector(transformationMatrix * v);
+        w = unit_vector(transformationMatrix * w);
     }
 
 
