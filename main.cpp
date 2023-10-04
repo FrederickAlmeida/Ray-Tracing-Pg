@@ -12,31 +12,32 @@ int main(){
     Camera* camera = nullptr;
     int vres, hres;
     float f;
+    int max_depth;
     while(cin){
         char input;
         cin >> input;
 
         if (input == 'c'){
             vec3 up, c, m;
-            cin >> hres >> vres >> f >> up >> c >> m;
+            cin >> hres >> vres >> f >> up >> c >> m >> max_depth;
             camera = new Camera(c, m , up);
         }
         else if (input == 's'){
             vec3 color, center;
             float radius;
-            float kd, ks, ka;
+            float kd, ks, ka, kr, kt, ior;
             int eta;
-            cin >> center >> radius >> color >> kd >> ks >> ka >> eta;
+            cin >> center >> radius >> color >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
             color = color/255.0;
-            objects.emplace_back(new Sphere(center, radius), color, ka, kd, ks, eta);
+            objects.emplace_back(new Sphere(center, radius), color, ka, kd, ks, kr, kt, eta ,ior);
         }
         else if  (input == 'p'){
             vec3 p0, n, o;
-            float kd, ks, ka;
+            float kd, ks, ka, kr, kt, ior;
             int eta;
-            cin >> p0 >> n >> o >> kd >> ks >> ka >> eta;
+            cin >> p0 >> n >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
             o = o/255.0;
-            objects.emplace_back(new Plane(p0, n), o, ka, kd, ks, eta);
+            objects.emplace_back(new Plane(p0, n), o, ka, kd, ks, kr, kt, eta, ior);
         }
         else if (input == 't'){
             int qntFaces, qntVertices;
@@ -57,12 +58,12 @@ int main(){
             }
 
             vec3 o;
-            float kd, ks, ka;
+            float kd, ks, ka, kr, kt, ior;
             int eta;
-            cin >> o >> kd >> ks >> ka >> eta;
+            cin >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
             o = o/255.0;
             for (auto [i,j,k] : faces){
-                objects.emplace_back(new Triangle(verticesList[i], verticesList[j], verticesList[k]), o, ka, kd, ks, eta);
+                objects.emplace_back(new Triangle(verticesList[i], verticesList[j], verticesList[k]), o, ka, kd, ks, kr, kt, eta, ior);
             }
         }
         else if (input == 'l') {
@@ -73,10 +74,10 @@ int main(){
         }
         else if (input == 'a') {
             cin >> ambientLight;
-            //ambientLight = ambientLight/255.0;
+            // ambientLight = ambientLight/255.0;
         }
         else if (input == 'e'){break;}
     }
-    camera->render(f, vres, hres);
+    camera->render(f, vres, hres, max_depth);
     return 0;
 }

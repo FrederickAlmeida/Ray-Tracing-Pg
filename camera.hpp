@@ -7,7 +7,7 @@ using namespace std;
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-const float square_side = 0.1f;
+const float square_side = 0.5f;
 
 class Camera{
     vec3 eye;
@@ -20,12 +20,12 @@ public:
         v = cross(w,u);
     }
 
-    void render(float f, int vres, int hres);
+    void render(float f, int vres, int hres, int max_depth);
 
     void applyMatrix (const Matrix& m);
 };
 
-void Camera::render(float f, int vres, int hres) {
+void Camera::render(float f, int vres, int hres, int max_depth) {
     vec3 topleft = eye - w*f + (v*(vres - 1) - u*(hres - 1))*square_side/2.0;
     std::cout << "P3" << std::endl;
     std::cout << hres << ' ' << vres << std::endl;
@@ -34,7 +34,7 @@ void Camera::render(float f, int vres, int hres) {
         for(int j=0; j<hres; j++){
             try {
                 vec3 pixelPosition = topleft + (u * j - v * i) * square_side;
-                vec3 pixelColor = ray_cast(Ray(eye, unit_vector(pixelPosition - eye)));
+                vec3 pixelColor = ray_trace(Ray(eye, unit_vector(pixelPosition - eye)), max_depth);
                 for(int k=0;k<3;k++){
                     pixelColor[k] = std::round(pixelColor[k]);
                 }
