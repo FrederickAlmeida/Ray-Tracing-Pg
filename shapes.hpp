@@ -1,5 +1,5 @@
 #include "transformations.hpp"
-
+#include "image.hpp"
 
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
@@ -22,18 +22,19 @@ struct Ray {
 
 class Shape{
 public:
+    Image* texture = NULL;
 
      // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
     virtual bool intersect(const Ray& ray, double& t) {
         return {}; // Implementação default
     }
 
-    virtual void applyMatrix(const Matrix& matrix) {
-        // Implementação default não faz nada
-    }
-
     virtual vec3 getNormal(const vec3& point) {
         return {}; // Implementação default retorna vetor nulo
+    }
+
+    virtual void applyTransformation(const Matrix& m) {
+        return;
     }
 };
 
@@ -71,14 +72,14 @@ public:
         return true;
     }
 
-    // Função para aplicar uma matriz de transformação à esfera	
-    void applyMatrix(const Matrix& matrix) {
-        center = matrix * center;
-    }
-
     // Função para obter o vetor normal à esfera num dado ponto
     vec3 getNormal(const vec3& point) {
         return unit_vector(point - center);
+    }
+
+    void applyTransformation(const Matrix& transformationMatrix) {
+        vec3 transformedCenter = transformationMatrix * center;
+        center = transformedCenter;
     }
 };
 
@@ -87,32 +88,43 @@ class Plane : public Shape {
 protected:
     vec3 pp; // Ponto pertencente ao plano
     vec3 normal; // Normal do plano
+    vec3 intersection_point; // último ponto de interseção entre o raio e o parâmetro
+    Image* texture = NULL; // Textura do plano
 
 public:
 
     Plane(const vec3& pp, const vec3& normal) : pp(pp), normal(unit_vector(normal)) {}
+    Plane(const vec3& pp, const vec3& normal, Image* texture) : pp(pp), normal(unit_vector(normal)), texture(texture) {}
 
     // Função para testar interseção entre um raio e o plano
-    bool intersect(const Ray& ray, double& t) {
+
+
+     bool intersect(const Ray& ray, double& t) {
         double aux = dot(normal, ray.direction);
 
         if (std::abs(aux) < EPS) {
             return false;
         } else {
             t = dot(normal, pp - ray.origin) / aux;
+            intersection_point = ray.origin + t * ray.direction;
             return t > EPS;
         }
     }
+
 
     // Função para obter a normal do plano
     vec3 getNormal(const vec3& point) {
         return normal;
     }
 
-    void applyMatrix(const Matrix& m){
-        pp = m * pp;
-        normal = unit_vector(m * normal);
+    void applyTransformation(const Matrix& transformationMatrix) {
+        vec3 transformedPoint = transformationMatrix * pp;
+        pp = transformedPoint;
+
+        vec3 transformedNormal = transformationMatrix * normal;
+        normal = unit_vector(transformedNormal);
     }
+
 };
 
 // Definição de um triângulo
@@ -157,12 +169,18 @@ public:
         return true;
     }
 
+    void applyTransformation(const Matrix& transformationMatrix) {
+        vec3 transformedA = transformationMatrix * pp;
+        vec3 transformedB = transformationMatrix * (pp + edgeVectorAB);
+        vec3 transformedC = transformationMatrix * (pp + edgeVectorAC);
 
-    void applyMatrix(const Matrix& m){
-        Plane::applyMatrix(m);
-        edgeVectorAB = m * edgeVectorAB;
-        edgeVectorAC = m * edgeVectorAC;
+        pp = transformedA;
+        edgeVectorAB = transformedB - transformedA;
+        edgeVectorAC = transformedC - transformedA;
+
+        normal = unit_vector(cross(edgeVectorAB, edgeVectorAC));
     }
+
 };
 
 #endif

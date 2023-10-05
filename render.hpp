@@ -12,12 +12,13 @@ class Material{
     double ka, kd, ks;
     int eta;
     double ior;
+    bool textured;
 
 public:
     double kr, kt;
 
-    Material(Shape* shape, vec3 color, double ka, double kd, double ks, double kr, double kt, int eta, double ior) : 
-    shape(shape), color(color/255.0f), ka(ka), kd(kd), ks(ks), kr(kr), kt(kt), eta(eta), ior(ior) {}
+    Material(Shape* shape, vec3 color, double ka, double kd, double ks, double kr, double kt, int eta, double ior, bool textured) : 
+    shape(shape), color(color/255.0f), ka(ka), kd(kd), ks(ks), kr(kr), kt(kt), eta(eta), ior(ior), textured(textured) {}
 
     Shape* getShape() const {
         return shape;
@@ -72,11 +73,8 @@ vec3 ray_trace (const Ray& ray, int ttl) {
         vec3 view = - ray.direction;
         vec3 normal = hit->getShape()->getNormal(point);
 
-        //debuglog << "point: " << point << " view: " << view << " normal: " << normal<< "\n";
 
         colour = hit->shade(point, view, normal);
-
-        //debuglog << "colour: " << colour << "\n";
         
         if (ttl > 0) {
             Ray reflectedRay(point, normal*(2.0*dot(normal, view)) - view);
@@ -111,15 +109,15 @@ std::vector<Light> lights;
 
 
 vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
+
+    if (textured){
+        const char* image_path = "textures/minions.jpg"; 
+        Image texture(image_path);
+        color = texture.getPixelColor(static_cast<int>(point.x()) % texture.getWidth(), static_cast<int>(point.z()) % texture.getHeight());
+    }
     vec3 res_color = (ambientLight * ka) * color;
 
-    // debuglog << "color: " << color << "\n";
-    // debuglog << "ambient light: " << ambientLight << "\n";
-    // debuglog << "res_color: " << res_color << "\n";
-
     for (Light light : lights) {
-
-        // debuglog << "light intensity: " << light.intensity << "\n";
 
         vec3 lightDirection = unit_vector(light.position - point);
         vec3 r = normal*2.0*(dot(normal, lightDirection)) - lightDirection;
@@ -139,6 +137,7 @@ vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
             }
         }
     }
-    // debuglog << "res_color final: " << res_color << "\n";
-    return res_color;
-}
+        return res_color;
+} 
+    
+

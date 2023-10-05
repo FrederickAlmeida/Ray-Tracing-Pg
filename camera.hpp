@@ -30,25 +30,19 @@ public:
         int k =0;
         for(int i=0; i<vres; i++){
             for(int j=0; j<hres; j++){
-                if (i == 394 && j == 444){
-                    int lixo = 0;
-                }
                 vec3 pixelPosition = topleft + (u * j - v * i) * square_side;
                 vec3 pixelColor = ray_trace(Ray(eye, unit_vector(pixelPosition - eye)), max_depth);
                 double r=pixelColor[0], g= pixelColor[1], b=pixelColor[2];
-                pixelColor = pixelColor;
                 std::cout << pixelColor << "\n";
-                debuglog << "Cor: " <<pixelColor << " i: " << i << " j: " << j << "\n";
-                k++;
             }
         }
     }
 
-
-
-    void applyMatrix (const Matrix& m){
-        eye = unit_vector(m *eye);
-        u = m*u; v = m*v; w = m*w;
+    void applyTransformation(const Matrix& transformationMatrix) {
+        eye = transformationMatrix * eye;
+        u = unit_vector(transformationMatrix * u);
+        v = unit_vector(transformationMatrix * v);
+        w = unit_vector(transformationMatrix * w);
     }
 
 
