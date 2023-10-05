@@ -2,7 +2,6 @@
 #include <limits>
 #include "render.hpp"
 #include <cmath>
-#include <fstream>
 using namespace std;
 
 #ifndef CAMERA_HPP
@@ -22,7 +21,6 @@ public:
     }
 
     void render(double f, int vres, int hres, int max_depth) {
-        ofstream debuglog("debug.log");
         vec3 topleft = eye - w*f + (v*(vres - 1) - u*(hres - 1))*square_side/2.0;
         std::cout << "P3" << std::endl;
         std::cout << hres << ' ' << vres << std::endl;

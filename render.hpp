@@ -2,9 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <limits>
-#include <fstream>
 
-//std::ofstream debuglog("debug.log");
 
 class Material{
     Shape* shape;

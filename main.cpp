@@ -3,8 +3,6 @@
 #include "camera.hpp"
 using namespace std;
 
-#define M_PI 3.14159265358979323846
-
 extern vec3 ambientLight;
 extern std::vector<Light> lights;
 extern std::vector<Material> objects;
