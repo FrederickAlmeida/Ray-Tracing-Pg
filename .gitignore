@@ -8,3 +8,4 @@ output.ppm
 saida.png
 debug.log
 .vscode
+*.ppm

@@ -110,58 +110,34 @@ std::vector<Light> lights;
 
 vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
 
-    if (!textured){
-        vec3 res_color = (ambientLight * ka) * color;
-
-        for (Light light : lights) {
-
-            vec3 lightDirection = unit_vector(light.position - point);
-            vec3 r = normal*2.0*(dot(normal, lightDirection)) - lightDirection;
-
-            double t;
-            auto shadow = nearest(Ray(point, lightDirection), t);
-
-            if (shadow == nullptr || dot(lightDirection, light.position - point) > t) {
-                double dotdiff = dot(lightDirection, normal);
-                if (dotdiff > 0) {
-                    res_color = res_color + light.intensity * kd * dotdiff * color;
-                }
-
-                double dotspec = dot(r, view);
-                if (dotspec > 0) {
-                    res_color = res_color + light.intensity * ks * pow(dotspec, eta);
-                }
-            }
-        }
-        return res_color;
-    } 
-    else{
+    if (textured){
         const char* image_path = "textures/minions.jpg"; 
         Image texture(image_path);
         color = texture.getPixelColor(static_cast<int>(point.x()) % texture.getWidth(), static_cast<int>(point.z()) % texture.getHeight());
-        vec3 res_color = (ambientLight * ka) * color;
+    }
+    vec3 res_color = (ambientLight * ka) * color;
 
-        for (Light light : lights) {
+    for (Light light : lights) {
 
-            vec3 lightDirection = unit_vector(light.position - point);
-            vec3 r = normal*2.0*(dot(normal, lightDirection)) - lightDirection;
+        vec3 lightDirection = unit_vector(light.position - point);
+        vec3 r = normal*2.0*(dot(normal, lightDirection)) - lightDirection;
 
-            double t;
-            auto shadow = nearest(Ray(point, lightDirection), t);
+        double t;
+        auto shadow = nearest(Ray(point, lightDirection), t);
 
-            if (shadow == nullptr || dot(lightDirection, light.position - point) > t) {
-                double dotdiff = dot(lightDirection, normal);
-                if (dotdiff > 0) {
-                    res_color = res_color + light.intensity * kd * dotdiff * color;
-                }
+        if (shadow == nullptr || dot(lightDirection, light.position - point) > t) {
+            double dotdiff = dot(lightDirection, normal);
+            if (dotdiff > 0) {
+                res_color = res_color + light.intensity * kd * dotdiff * color;
+            }
 
-                double dotspec = dot(r, view);
-                if (dotspec > 0) {
-                    res_color = res_color + light.intensity * ks * pow(dotspec, eta);
-                }
+            double dotspec = dot(r, view);
+            if (dotspec > 0) {
+                res_color = res_color + light.intensity * ks * pow(dotspec, eta);
             }
         }
-        return res_color;
     }
+        return res_color;
+} 
+    
 
-}
