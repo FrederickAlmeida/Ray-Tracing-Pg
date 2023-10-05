@@ -46,7 +46,7 @@ p point_x point_y point_z normal_x normal_y normal_z r g b kd ks ka kr kt rugosi
 
 # plane with texture (choose the texture of folder 'textures' in the render.cpp file):
 
-i point_x point_y point_z normal_x normal_y normal_z r g b kd ks ka kr kt rugosity refraction_index
+i point_x point_y point_z normal_x normal_y normal_z r g b kd ks ka kr kt rugosity refraction_index image_path
 
 # ambient light:
 
