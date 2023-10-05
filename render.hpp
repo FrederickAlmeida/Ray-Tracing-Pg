@@ -136,7 +136,7 @@ vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
         return res_color;
     } 
     else{
-        const char* image_path = "tijolos.jpg"; 
+        const char* image_path = "textures/minions.jpg"; 
         Image texture(image_path);
         color = texture.getPixelColor(static_cast<int>(point.x()) % texture.getWidth(), static_cast<int>(point.z()) % texture.getHeight());
         vec3 res_color = (ambientLight * ka) * color;
