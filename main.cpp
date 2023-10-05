@@ -31,7 +31,7 @@ int main(){
             int eta;
             cin >> center >> radius >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
             //o = o/255.0;
-            objects.emplace_back(new Sphere(center, radius), o, ka, kd, ks, kr, kt, eta ,ior);
+            objects.emplace_back(new Sphere(center, radius), o, ka, kd, ks, kr, kt, eta ,ior, false);
         }
         else if  (input == 'p'){
             vec3 p0, n, o;
@@ -39,7 +39,15 @@ int main(){
             int eta;
             cin >> p0 >> n >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
             //o = o/255.0;
-            objects.emplace_back(new Plane(p0, n), o, ka, kd, ks, kr, kt, eta, ior);
+            objects.emplace_back(new Plane(p0, n), o, ka, kd, ks, kr, kt, eta, ior, false);
+        }
+        else if  (input == 'i'){
+            vec3 p0, n, o;
+            double kd, ks, ka, kr, kt, ior;
+            int eta;
+            cin >> p0 >> n >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
+            //o = o/255.0;
+            objects.emplace_back(new Plane(p0, n), o, ka, kd, ks, kr, kt, eta, ior, true);
         }
         else if (input == 't'){
             int qntFaces, qntVertices;
@@ -65,7 +73,7 @@ int main(){
             cin >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
             //o = o/255.0;
             for (auto [i,j,k] : faces){
-                objects.emplace_back(new Triangle(verticesList[i], verticesList[j], verticesList[k]), o, ka, kd, ks, kr, kt, eta, ior);
+                objects.emplace_back(new Triangle(verticesList[i], verticesList[j], verticesList[k]), o, ka, kd, ks, kr, kt, eta, ior, false);
                 objects.back().getShape()->applyTransformation(Matrix::rotation_z(M_PI/12, false));
                 objects.back().getShape()->applyTransformation(Matrix::translation(200, 400, 50));
             }

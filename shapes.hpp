@@ -1,5 +1,5 @@
 #include "transformations.hpp"
-
+#include "image.hpp"
 
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
@@ -22,6 +22,7 @@ struct Ray {
 
 class Shape{
 public:
+    Image* texture = NULL;
 
      // Funções virtuais puras para testar interseção com um raio, aplicar uma matriz de transformação e obter o vetor normal
     virtual bool intersect(const Ray& ray, double& t) {
@@ -87,22 +88,29 @@ class Plane : public Shape {
 protected:
     vec3 pp; // Ponto pertencente ao plano
     vec3 normal; // Normal do plano
+    vec3 intersection_point; // último ponto de interseção entre o raio e o parâmetro
+    Image* texture = NULL; // Textura do plano
 
 public:
 
     Plane(const vec3& pp, const vec3& normal) : pp(pp), normal(unit_vector(normal)) {}
+    Plane(const vec3& pp, const vec3& normal, Image* texture) : pp(pp), normal(unit_vector(normal)), texture(texture) {}
 
     // Função para testar interseção entre um raio e o plano
-    bool intersect(const Ray& ray, double& t) {
+
+
+     bool intersect(const Ray& ray, double& t) {
         double aux = dot(normal, ray.direction);
 
         if (std::abs(aux) < EPS) {
             return false;
         } else {
             t = dot(normal, pp - ray.origin) / aux;
+            intersection_point = ray.origin + t * ray.direction;
             return t > EPS;
         }
     }
+
 
     // Função para obter a normal do plano
     vec3 getNormal(const vec3& point) {
