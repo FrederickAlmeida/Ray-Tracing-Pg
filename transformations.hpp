@@ -7,7 +7,6 @@
 
 class Matrix {
 private:
-    //vec3* rows;
     int n_rows;
     int n_cols;
     std::vector<std::vector<float>> data;
