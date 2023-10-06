@@ -40,8 +40,9 @@ int main(){
             vec3 p0, n, o;
             double kd, ks, ka, kr, kt, ior;
             int eta;
-            cin >> p0 >> n >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior;
-            objects.emplace_back(new Plane(p0, n), o, ka, kd, ks, kr, kt, eta, ior, true);
+            std::string imagePath;
+            cin >> p0 >> n >> o >> kd >> ks >> ka >> kr >> kt >> eta >> ior >> imagePath;
+            objects.emplace_back(new Plane(p0, n), o, ka, kd, ks, kr, kt, eta, ior, true, imagePath);
         }
         else if (input == 't'){
             int qntFaces, qntVertices;

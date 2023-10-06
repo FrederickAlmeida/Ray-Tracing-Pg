@@ -11,12 +11,20 @@ class Material{
     int eta;
     double ior;
     bool textured;
+    std::string imagePath;
+    Image *texture = nullptr;
 
 public:
     double kr, kt;
 
-    Material(Shape* shape, vec3 color, double ka, double kd, double ks, double kr, double kt, int eta, double ior, bool textured) : 
-    shape(shape), color(color/255.0f), ka(ka), kd(kd), ks(ks), kr(kr), kt(kt), eta(eta), ior(ior), textured(textured) {}
+    Material(Shape* shape, vec3 color, double ka, double kd, double ks, double kr, double kt, int eta, double ior, bool textured, std::string imagePath = nullptr) :
+    shape(shape), color(color/255.0f), ka(ka), kd(kd), ks(ks), kr(kr), kt(kt), eta(eta), ior(ior), textured(textured) {
+        if(textured){
+            const char* image_path = imagePath.c_str();
+            texture = new Image(image_path);
+        }
+    }
+
 
     Shape* getShape() const {
         return shape;
@@ -109,9 +117,7 @@ std::vector<Light> lights;
 vec3 Material::shade (const vec3 &point, const vec3 &view, const vec3 &normal) {
 
     if (textured){
-        const char* image_path = "textures/minions.jpg"; 
-        Image texture(image_path);
-        color = texture.getPixelColor(static_cast<int>(point.x()) % texture.getWidth(), static_cast<int>(point.z()) % texture.getHeight());
+        color = texture->getPixelColor(static_cast<int>(point.x()) % texture->getWidth(), static_cast<int>(point.z()) % texture->getHeight());
     }
     vec3 res_color = (ambientLight * ka) * color;
 
