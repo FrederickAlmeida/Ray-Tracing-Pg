@@ -1,8 +1,8 @@
 # Ray-Tracing-Pg
 
-Project from the course of "Graphics Processing" at the Federal University of Pernambuco (UFPE).
-Recursirve Ray Tracing implementation in C++. Using Phong's model for shading and reflection and refraction effects.
-Extra feature: Texture mapping into plane object.
+Project from the "Graphics Processing" course at the Federal University of Pernambuco (UFPE).
+Recursirve Ray Tracing implementation in C++. Using Phong's model for shading, reflection, and refraction effects.
+Extra feature: Texture mapping into a plane object.
 
 ## Group
 
